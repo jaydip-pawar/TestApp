@@ -9,11 +9,13 @@ class BHome extends StatefulWidget {
 }
 
 class _BHomeState extends State<BHome> {
+  int nBoard = 0; //Number of boards
+  int nButtons = 0; //Number of buttons
 
-  int nBoard = 0;     //Number of boards
-
-  Stream<DocumentSnapshot> documentStream = FirebaseFirestore.instance.collection('user').doc('gnB1oDZIqlgpHVHftjKdmUfOOW23').snapshots();
-  Stream<DocumentSnapshot> documentStream2 = FirebaseFirestore.instance.collection('user').doc('gnB1oDZIqlgpHVHftjKdmUfOOW23').snapshots();
+  Stream<DocumentSnapshot> documentStream = FirebaseFirestore.instance
+      .collection('user')
+      .doc('gnB1oDZIqlgpHVHftjKdmUfOOW23')
+      .snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -21,78 +23,71 @@ class _BHomeState extends State<BHome> {
       appBar: AppBar(
         title: Text("BHome"),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            StreamBuilder<DocumentSnapshot>(
-              stream: documentStream,
-              builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Something went wrong');
-                }
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: documentStream,
+        builder:
+            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text("Error found");
+          }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text("Loading");
-                }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
 
-                if(snapshot.data!['nBoard'] == 0) {
-                  return Text("Add Device");
-                } else if(snapshot.data!['nBoard'] > 0) {
-                  nBoard = snapshot.data!['nBoard'];
-                  // return Text(nBoard.toString());
-                }
+          if (snapshot.data!['nBoard'] == 0) {
+            return Text("Add Device");
+          } else if (snapshot.data!['nBoard'] > 0) {
+            nBoard = snapshot.data!['nBoard'];
+            // return Text(nBoard.toString());
+          }
 
-                return ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(8),
-                  itemCount: nBoard,
-                  itemBuilder: (BuildContext context, int index) {
-                    print(index);
-                    return Text(snapshot.data!['boardNames'][index]);
-                  });
+          return Container(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: nBoard,
+              itemBuilder: (BuildContext context, int index) {
+                return StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('boards')
+                      .doc("gnB1oDZIqlgpHVHftjKdmUfOOW23")
+                      .collection(snapshot.data!['boardNames'][index])
+                      .doc("boardData")
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot> snapshot1) {
 
-                // return Text("No data");
-              },
-            ),
-            StreamBuilder<DocumentSnapshot>(
-              stream: documentStream,
-              builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Something went wrong');
-                }
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('boardNames')
+                          .doc(snapshot.data!['boardNames'][index])
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot2) {
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text("Loading");
-                }
+                        if(!snapshot1.hasData || !snapshot2.hasData) return Container();
 
-                if(snapshot.data!['nBoard'] == 0) {
-                  return Text("Add Device");
-                } else if(snapshot.data!['nBoard'] > 0) {
-                  nBoard = snapshot.data!['nBoard'];
-                  // return Text(nBoard.toString());
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(8),
-                  itemCount: 30,
-                  itemBuilder: (BuildContext context, int index) {
-                    // return Text(snapshot.data!['boardNames'][index]);
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: 30,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Text("List");
-                      }
+                        return Column(
+                          children: [
+                            Text("Board Name: " +
+                                snapshot.data!['boardNames'][index]),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: snapshot1.data!['buttons'],
+                              itemBuilder: (BuildContext context, int index) {
+                                return Text(snapshot2.data!['button${index+1}']['name']);
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
-                  });
-
-                // return Text("No data");
+                  },
+                );
               },
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
