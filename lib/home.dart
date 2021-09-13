@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_test/bhome.dart';
+import 'package:firebase_test/new_page.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -20,8 +22,14 @@ class _HomeState extends State<Home> {
         .then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
         print('Document exists on the database');
+      } else {
+        print('Document not exists...');
       }
     });
+  }
+
+  navigator() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => NewPage()));
   }
 
   @override
@@ -33,8 +41,13 @@ class _HomeState extends State<Home> {
       body: Center(
         child: Column(
           children: [
+
             Text("Firebase Test"),
-            MaterialButton(onPressed: getData, child: Text("Check"),)
+            MaterialButton(onPressed: getData, child: Text("Check"),),
+            MaterialButton(onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => BHome()));
+            }, child: Text("BHome Page"),),
+            MaterialButton(onPressed: navigator, child: Text("Go To new Listener Page"),),
           ],
         ),
       ),
