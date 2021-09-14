@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class BHome extends StatefulWidget {
@@ -11,6 +12,22 @@ class BHome extends StatefulWidget {
 class _BHomeState extends State<BHome> {
   int nBoard = 0; //Number of boards
   int nButtons = 0; //Number of buttons
+
+  final database = FirebaseDatabase.instance.reference();
+  late DatabaseReference mydb;
+  Map buttons = {};
+
+  updateValue(bool value, String boardName, int button) async {
+    mydb = database.child('$boardName/');
+    try {
+      await mydb.child("button" + button.toString()).set(value);
+      setState(() {
+
+      });
+    } catch (e) {
+      print("Got an error");
+    }
+  }
 
   Stream<DocumentSnapshot> documentStream = FirebaseFirestore.instance
       .collection('user')
@@ -74,8 +91,34 @@ class _BHomeState extends State<BHome> {
                             ListView.builder(
                               shrinkWrap: true,
                               itemCount: snapshot1.data!['buttons'],
-                              itemBuilder: (BuildContext context, int index) {
-                                return Text(snapshot2.data!['button${index+1}']['name']);
+                              itemBuilder: (BuildContext context, int index2) {
+                                print(index2);
+                                int ind = index2 + 1;
+                                String path = snapshot.data!['boardNames'][index] + "/button" + ind.toString();
+                                print(path);
+                                return StreamBuilder<Event>(
+                                  stream: database.child(path).onValue,
+                                  builder: (BuildContext context, AsyncSnapshot<Event> event) {
+                                    buttons.update("button1",
+                                            (existingValue) => (){
+                                          return event.data!.snapshot.value;
+                                        },
+                                        ifAbsent: () => event.data!.snapshot.value);
+
+                                    return Transform.scale(
+                                        scale: 2,
+                                        child: Switch(
+                                          onChanged: (value) => updateValue(value, snapshot.data!['boardNames'][index], index2 + 1),
+                                          value: event.data!.snapshot.value,
+                                          activeColor: Colors.blue,
+                                          activeTrackColor: Colors.yellow,
+                                          inactiveThumbColor: Colors.redAccent,
+                                          inactiveTrackColor: Colors.orange,
+                                        )
+                                    );
+                                  },
+                                );
+                                  // Text(snapshot2.data!['button${index+1}']['name']);
                               },
                             ),
                           ],

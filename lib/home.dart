@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_test/bhome.dart';
 import 'package:firebase_test/new_page.dart';
+import 'package:firebase_test/realtime_data.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -11,7 +12,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
   getData() {
     FirebaseFirestore.instance
         .collection('boards')
@@ -41,13 +41,29 @@ class _HomeState extends State<Home> {
       body: Center(
         child: Column(
           children: [
-
             Text("Firebase Test"),
-            MaterialButton(onPressed: getData, child: Text("Check"),),
-            MaterialButton(onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => BHome()));
-            }, child: Text("BHome Page"),),
-            MaterialButton(onPressed: navigator, child: Text("Go To new Listener Page"),),
+            MaterialButton(
+              onPressed: getData,
+              child: Text("Check"),
+            ),
+            MaterialButton(
+              onPressed: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => BHome()));
+              },
+              child: Text("BHome Page"),
+            ),
+            MaterialButton(
+              onPressed: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => RTD()));
+              },
+              child: Text("RTD"),
+            ),
+            MaterialButton(
+              onPressed: navigator,
+              child: Text("Go To new Listener Page"),
+            ),
           ],
         ),
       ),
